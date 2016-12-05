@@ -240,7 +240,6 @@ public class LLRealtimeSegmentDataManager extends SegmentDataManager {
 
     int consecutiveErrorCount = 0;
     final int MAX_CONSECUTIVE_ERROR_COUNT = 5;
-    boolean successful = true;
 
     final long _endOffset = Long.MAX_VALUE; // No upper limit on Kafka offset
     segmentLogger.info("Starting consumption loop start offset {}, finalOffset {}", _currentOffset, _finalOffset);
@@ -262,15 +261,13 @@ public class LLRealtimeSegmentDataManager extends SegmentDataManager {
         consecutiveErrorCount++;
 
         if (consecutiveErrorCount < MAX_CONSECUTIVE_ERROR_COUNT) {
-          successful = false;
-          break;
+          throw e;
         } else {
           Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
           continue;
         }
       } catch (SimpleConsumerWrapper.PermanentConsumerException e) {
-        successful = false;
-        break;
+        throw e;
       }
 
       Iterator<MessageAndOffset> msgIterator = messagesAndOffsets.iterator();
@@ -344,7 +341,7 @@ public class LLRealtimeSegmentDataManager extends SegmentDataManager {
     _serverMetrics.addMeteredTableValue(_metricKeyName, ServerMeter.COLUMNS_WITH_NULL_VALUES,
         (long) _fieldExtractor.getTotalNullCols());
 
-    return successful;
+    return true;
   }
 
   public class PartitionConsumer implements Runnable {
