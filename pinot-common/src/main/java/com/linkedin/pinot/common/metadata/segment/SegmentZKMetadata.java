@@ -26,6 +26,7 @@ import com.linkedin.pinot.common.utils.CommonConstants;
 import com.linkedin.pinot.common.utils.CommonConstants.Segment.SegmentType;
 import static com.linkedin.pinot.common.utils.EqualityUtils.isEqual;
 import static com.linkedin.pinot.common.utils.EqualityUtils.hashCodeOf;
+import static com.linkedin.pinot.common.utils.EqualityUtils.isEqualIgnoreOrder;
 import static com.linkedin.pinot.common.utils.EqualityUtils.isSameReference;
 import static com.linkedin.pinot.common.utils.EqualityUtils.isNullOrNotSameClass;
 
@@ -146,6 +147,14 @@ public abstract class SegmentZKMetadata implements ZKMetadata {
     _creationTime = creationTime;
   }
 
+  public void setSizeThresholdToFlushSegment(int sizeThresholdToFlushSegment) {
+    _sizeThresholdToFlushSegment = sizeThresholdToFlushSegment;
+  }
+
+  public int getSizeThresholdToFlushSegment() {
+    return _sizeThresholdToFlushSegment;
+  }
+
   @Override
   public boolean equals(Object segmentMetadata) {
     if (isSameReference(this, segmentMetadata)) {
@@ -166,7 +175,8 @@ public abstract class SegmentZKMetadata implements ZKMetadata {
         isEqual(_segmentType, metadata._segmentType) &&
         isEqual(_totalRawDocs, metadata._totalRawDocs) &&
         isEqual(_crc, metadata._crc) &&
-        isEqual(_creationTime, metadata._creationTime);
+        isEqual(_creationTime, metadata._creationTime) &&
+        isEqual(_sizeThresholdToFlushSegment, metadata._sizeThresholdToFlushSegment);
   }
 
   @Override
@@ -181,6 +191,7 @@ public abstract class SegmentZKMetadata implements ZKMetadata {
     result = hashCodeOf(result, _totalRawDocs);
     result = hashCodeOf(result, _crc);
     result = hashCodeOf(result, _creationTime);
+    result = hashCodeOf(result, _sizeThresholdToFlushSegment);
     return result;
   }
 
@@ -202,6 +213,7 @@ public abstract class SegmentZKMetadata implements ZKMetadata {
     znRecord.setLongField(CommonConstants.Segment.TOTAL_DOCS, _totalRawDocs);
     znRecord.setLongField(CommonConstants.Segment.CRC, _crc);
     znRecord.setLongField(CommonConstants.Segment.CREATION_TIME, _creationTime);
+    znRecord.setLongField(CommonConstants.Segment.FLUSH_THRESHOLD_SIZE, _sizeThresholdToFlushSegment);
     return znRecord;
   }
 
@@ -222,10 +234,7 @@ public abstract class SegmentZKMetadata implements ZKMetadata {
     configMap.put(CommonConstants.Segment.TOTAL_DOCS, Long.toString(_totalRawDocs));
     configMap.put(CommonConstants.Segment.CRC, Long.toString(_crc));
     configMap.put(CommonConstants.Segment.CREATION_TIME, Long.toString(_creationTime));
+    configMap.put(CommonConstants.Segment.FLUSH_THRESHOLD_SIZE, Integer.toString(_sizeThresholdToFlushSegment));
     return configMap;
-  }
-
-  public int getSizeThresholdToFlushSegment() {
-    return _sizeThresholdToFlushSegment;
   }
 }
